@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-abyss: #0A0B0E;
+  --surface-slate: #15181E;
+  --border-granite: #252B35;
+  --accent-spectral: #00F5D4;
+  --portal-amber: #FFB703;
+  --tension-crimson: #EF233C;
+  --text-bone: #F4F4F6;
+  --text-ash: #8E98A5;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #0A0B0E;
+  color: #F4F4F6;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Custom Scrollbars for Dialogue/Terminal */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0A0B0E;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #252B35;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00F5D4;
+}
+

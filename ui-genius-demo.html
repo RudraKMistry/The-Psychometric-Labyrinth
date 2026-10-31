@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Psychometric Labyrinth // UI-GENIUS Advanced Exhibition</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Syne:wght@700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --background: #090B0E;
+      --card: #11141A;
+      --foreground: #F0F4F8;
+      --border: #1E242E;
+      --accent: #70C1B3;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--background);
+      color: var(--foreground);
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      overflow: hidden;
+      user-select: none;
+    }
+    .font-display { font-family: 'Syne', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .font-technical { font-family: 'Space Grotesk', sans-serif; }
+    
+    .grain-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.05;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    }
+  </style>
+</head>
+<body class="w-screen h-screen flex flex-col bg-[#090B0E] text-[#F0F4F8]">
+  <div class="grain-overlay z-40"></div>
+
+  <!-- Minimalist Header -->
+  <header class="h-16 border-b border-[#1E242E] bg-[#0D1016]/95 backdrop-blur-md px-6 flex items-center justify-between z-30 shrink-0">
+    <div class="flex items-center space-x-6">
+      <div class="flex items-center space-x-3">
+        <span class="w-2.5 h-2.5 rounded-full bg-[#70C1B3] shadow-[0_0_12px_rgba(112,193,179,0.7)]" id="live-indicator"></span>
+        <span class="font-display font-extrabold text-sm uppercase tracking-widest text-[#F0F4F8]">
+          Psychometric Labyrinth
+        </span>
+        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-[#151922] border border-[#242C38] text-[#8E98A5]">
+          Physical Raycast LOS
+        </span>
+      </div>
+
+      <!-- Blueprint Evolution Variations -->
+      <nav class="hidden md:flex items-center space-x-1 p-1 bg-[#090B0E] border border-[#1E242E] rounded">
+        <button onclick="setDirection(0)" id="tab-0" class="px-3 py-1.5 rounded text-xs font-mono font-medium transition-all text-[#F0F4F8] bg-[#1E2532] shadow-sm">
+          01 // Resonant Blueprint
+        </button>
+        <button onclick="setDirection(1)" id="tab-1" class="px-3 py-1.5 rounded text-xs font-mono font-medium transition-all text-[#8E98A5] hover:text-[#F0F4F8]">
+          02 // Tectonic Volumetric Lantern
+        </button>
+        <button onclick="setDirection(2)" id="tab-2" class="px-3 py-1.5 rounded text-xs font-mono font-medium transition-all text-[#8E98A5] hover:text-[#F0F4F8]">
+          03 // Sacred Reliquary (Chladni Waves)
+        </button>
+      </nav>
+    </div>
+
+    <!-- Live Telemetry & Sound Controls -->
+    <div class="flex items-center space-x-4 text-xs font-mono">
+      <div class="hidden lg:flex items-center space-x-2 bg-[#11141A] px-3 py-1 rounded border border-[#1E242E] text-[#8E98A5]">
+        <span>VISION: RAYCAST RAYMARCHING (EPHEMERAL FOG)</span>
+      </div>
+      <button onclick="toggleAudio()" id="audio-btn" class="px-3 py-1 rounded border border-[#1E242E] hover:border-[#70C1B3] transition-colors text-[#8E98A5] hover:text-[#F0F4F8] flex items-center space-x-2">
+        <span id="audio-icon">🔇</span>
+        <span id="audio-label">SOUND FX: OFF</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Interactive Exhibition Stage -->
+  <main class="relative flex-1 flex overflow-hidden">
+    <!-- Center 2D Raycast Canvas -->
+    <div class="relative flex-1 flex items-center justify-center bg-[#090B0E] overflow-hidden" id="canvas-container">
+      <canvas id="maze-canvas" class="cursor-crosshair"></canvas>
+
+      <!-- Spatial HUD Telemetry -->
+      <div class="absolute top-4 left-4 z-20 pointer-events-none flex flex-col space-y-1">
+        <div class="font-mono text-[11px] text-[#8E98A5] bg-[#0D1016]/90 px-3 py-1.5 rounded border border-[#1E242E] backdrop-blur-sm shadow-lg" id="pos-display">
+          LOC: [X: 01, Y: 01] // SECTOR: CORRIDOR_VOID
+        </div>
+        <div class="font-mono text-[10px] text-[#70C1B3]" id="mode-meta">
+          DIRECTION 01 • PHYSICAL CORRIDOR SIGHTLINE
+        </div>
+      </div>
+
+      <!-- Sight Mechanic Indicator -->
+      <div class="absolute top-4 right-4 z-20 pointer-events-none">
+        <div class="font-mono text-[10px] text-[#8E98A5] bg-[#0D1016]/90 px-3 py-1.5 rounded border border-[#1E242E] backdrop-blur-sm">
+          👁️ SIGHT RADIUS: 5.5 TILES • PAST TILES UNREVEALED
+        </div>
+      </div>
+
+      <!-- Chamber Engagement Toast -->
+      <div id="chamber-hint" class="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 hidden">
+        <div class="bg-[#11141A]/95 border border-[#70C1B3] px-5 py-2.5 rounded-lg shadow-2xl flex items-center space-x-3 backdrop-blur-md animate-bounce">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#70C1B3] animate-ping"></span>
+          <span class="font-mono text-xs text-[#F0F4F8] tracking-wider uppercase font-semibold" id="chamber-hint-text">
+            CHAMBER REACHED: PRESS [SPACE] OR ENTER TO ENGAGE
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Architecture & Mechanics Sidebar -->
+    <aside class="w-80 md:w-96 border-l border-[#1E242E] bg-[#0D1016] p-6 flex flex-col justify-between shrink-0 overflow-y-auto z-20">
+      <div>
+        <div class="flex items-center justify-between mb-4 pb-2 border-b border-[#1E242E]">
+          <span class="font-mono text-xs uppercase tracking-widest text-[#8E98A5]" id="arch-number">EVOLUTION 01 / 03</span>
+          <span class="font-mono text-xs text-[#70C1B3]" id="arch-vibe">RESONANT BLUEPRINT</span>
+        </div>
+
+        <h2 class="text-xl font-display font-bold uppercase tracking-wider text-[#F0F4F8] mb-2" id="arch-title">
+          The Resonant Blueprint
+        </h2>
+        <p class="text-xs text-[#8E98A5] leading-relaxed mb-6" id="arch-desc">
+          Building upon your selected Blueprint aesthetic: pure architectural graphite with razor chalk geometry. Vision is strictly physical—light rays cast down long straight corridors until they strike a corner. Behind you, the maze gently dissolves back into absolute void.
+        </p>
+
+        <!-- Raycasting Physical Vision Features -->
+        <div class="space-y-3 mb-6 bg-[#11141A] p-4 rounded-lg border border-[#1E242E]">
+          <div class="flex items-start space-x-2 text-xs">
+            <span class="text-[#70C1B3] font-mono">01.</span>
+            <div>
+              <span class="font-mono font-semibold text-[#F0F4F8] block">Physical Raycast Mask</span>
+              <span class="text-[11px] text-[#8E98A5]">360 rays cast from the player stop on walls. Long corridors are pierced; blind corners stay pitch dark.</span>
+            </div>
+          </div>
+          <div class="flex items-start space-x-2 text-xs">
+            <span class="text-[#70C1B3] font-mono">02.</span>
+            <div>
+              <span class="font-mono font-semibold text-[#F0F4F8] block">Ephemeral Unrevealing</span>
+              <span class="text-[11px] text-[#8E98A5]">No static map memory. Step forward and the corridors behind you instantly sink back into the abyss.</span>
+            </div>
+          </div>
+          <div class="flex items-start space-x-2 text-xs">
+            <span class="text-[#70C1B3] font-mono">03.</span>
+            <div>
+              <span class="font-mono font-semibold text-[#F0F4F8] block">Chamber Resonance Waves</span>
+              <span class="text-[11px] text-[#8E98A5]">Approaching active rooms triggers standing harmonic waves along corridor borders.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Palette Preview -->
+        <div class="mb-6">
+          <label class="block font-mono text-[11px] uppercase tracking-wider text-[#8E98A5] mb-2">Design Tokens</label>
+          <div class="grid grid-cols-4 gap-2" id="palette-chips">
+            <!-- Dynamically injected -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <div class="pt-4 border-t border-[#1E242E]">
+        <button onclick="triggerChamberTest()" class="w-full py-2.5 bg-[#1E2532] hover:bg-[#283244] border border-[#1E242E] hover:border-[#70C1B3] text-[#F0F4F8] font-mono text-xs rounded transition-all uppercase tracking-wider flex items-center justify-center space-x-2">
+          <span>Test Chamber Dialogue Modal</span>
+        </button>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Chamber Modal Overlay -->
+  <div id="chamber-modal" class="fixed inset-0 z-50 hidden bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-[#11141A] border border-[#1E242E] rounded-lg max-w-2xl w-full p-6 shadow-2xl relative">
+      <button onclick="closeChamberModal()" class="absolute top-4 right-4 text-[#8E98A5] hover:text-[#F0F4F8] font-mono text-sm">
+        [ESC / CLOSE]
+      </button>
+
+      <div class="flex items-center space-x-3 mb-6 pb-3 border-b border-[#1E242E]">
+        <span class="w-3 h-3 rounded-full bg-[#70C1B3]" id="modal-accent-dot"></span>
+        <div>
+          <span class="text-[10px] font-mono tracking-widest uppercase text-[#8E98A5] block" id="modal-sub">ROOM 03 // THE ENTRAPMENT</span>
+          <h3 class="text-xl font-display font-bold uppercase text-[#F0F4F8]" id="modal-title">The Warden's Paradox</h3>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="bg-[#090B0E] p-4 rounded border border-[#1E242E] flex flex-col items-center justify-center min-h-[180px] relative overflow-hidden">
+          <div class="w-20 h-20 rounded-full border border-[#70C1B3]/40 flex items-center justify-center relative mb-3">
+            <div class="w-12 h-12 rounded-full bg-[#70C1B3]/20 animate-ping absolute"></div>
+            <span class="font-mono text-2xl font-bold text-[#70C1B3]">Ψ</span>
+          </div>
+          <span class="font-mono text-xs text-[#F0F4F8]">CHAMBER WARDEN</span>
+          <span class="font-mono text-[10px] text-[#8E98A5]">Gemma-4 Dual-Rail Persona</span>
+        </div>
+
+        <div class="flex flex-col justify-between">
+          <div class="bg-[#090B0E] p-3 rounded border border-[#1E242E] text-xs font-mono text-[#F0F4F8] mb-3 leading-relaxed h-28 overflow-y-auto" id="modal-chat-bubble">
+            <span class="text-[#70C1B3] block mb-1">// WARDEN:</span>
+            "You stand in the Entrapment Chamber. The stone gates behind you have locked. Tell me, traveler: why should I allow your mind to proceed into the deeper labyrinth?"
+          </div>
+          <div class="space-y-2">
+            <input type="text" id="modal-input" placeholder="Type your persuasion argument..." class="w-full bg-[#090B0E] border border-[#1E242E] rounded px-3 py-2 text-xs font-mono text-[#F0F4F8] focus:border-[#70C1B3] focus:outline-none" onkeydown="if(event.key==='Enter') submitTestDialogue()" />
+            <div class="flex justify-between items-center text-[10px] font-mono text-[#8E98A5]">
+              <span>PERSUASION SCORE: 0/100</span>
+              <span class="text-[#70C1B3]">FRUGAL TOKEN CALL</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex space-x-3">
+        <button onclick="submitTestDialogue()" class="flex-1 py-2 bg-[#70C1B3] text-[#090B0E] font-mono font-bold text-xs uppercase tracking-wider rounded hover:bg-[#70C1B3]/90 transition-all">
+          Transmit Persuasion Argument
+        </button>
+        <button onclick="closeChamberModal()" class="px-4 py-2 bg-[#1E2532] text-[#F0F4F8] font-mono text-xs rounded border border-[#1E242E] hover:border-[#8E98A5]">
+          Step Back to Maze
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // -------------------------------------------------------------------------
+    // PROCEDURAL AUDIO ENGINE
+    // -------------------------------------------------------------------------
+    let audioCtx = null;
+    let audioEnabled = false;
+
+    function initAudio() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      const btn = document.getElementById('audio-btn');
+      const label = document.getElementById('audio-label');
+      const icon = document.getElementById('audio-icon');
+      if (audioEnabled) {
+        initAudio();
+        label.innerText = 'SOUND FX: ON';
+        icon.innerText = '🔊';
+        btn.classList.add('border-[#70C1B3]', 'text-[#F0F4F8]');
+        playChime();
+      } else {
+        label.innerText = 'SOUND FX: OFF';
+        icon.innerText = '🔇';
+        btn.classList.remove('border-[#70C1B3]', 'text-[#F0F4F8]');
+      }
+    }
+
+    function playFootstep() {
+      if (!audioEnabled || !audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      const now = audioCtx.currentTime;
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(220, now);
+      osc.frequency.exponentialRampToValueAtTime(70, now + 0.05);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.06);
+    }
+
+    function playChime() {
+      if (!audioEnabled || !audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      const now = audioCtx.currentTime;
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(440, now);
+      osc.frequency.exponentialRampToValueAtTime(880, now + 0.12);
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.13);
+    }
+
+    // -------------------------------------------------------------------------
+    // DIRECTIONS (BLUEPRINT EVOLUTION)
+    // -------------------------------------------------------------------------
+    const DIRECTIONS = [
+      {
+        id: 0,
+        title: "The Resonant Blueprint",
+        number: "EVOLUTION 01 / 03",
+        vibe: "CHALK BLUEPRINT",
+        accent: "#70C1B3",
+        bg: "#090B0E",
+        wall: "#1A202C",
+        corridor: "#10141C",
+        player: "#F0F6FC",
+        portal: "#E0A96D",
+        desc: "Architectural graphite grid with razor chalk linework. Physical raycasting sends light deep down long straight corridors until a wall or turn is reached. As you walk forward, corridors behind you fade back into absolute black.",
+        palette: [
+          { name: "Void", hex: "#090B0E" },
+          { name: "Blueprint", hex: "#1A202C" },
+          { name: "Chalk", hex: "#F0F6FC" },
+          { name: "Resonance", hex: "#70C1B3" }
+        ],
+        style: 'blueprint'
+      },
+      {
+        id: 1,
+        title: "Tectonic Volumetric Lantern",
+        number: "EVOLUTION 02 / 03",
+        vibe: "AMBER LANTERN",
+        accent: "#F4A261",
+        bg: "#08090C",
+        wall: "#1F232B",
+        corridor: "#12151B",
+        player: "#FFF4E6",
+        portal: "#E76F51",
+        desc: "A warm, high-contrast exploration lantern piercing the brutalist stone labyrinth. Long corridors illuminate with volumetric dust motes. Past corridors sink into total darkness the instant your light beam moves away.",
+        palette: [
+          { name: "Abyss", hex: "#08090C" },
+          { name: "Granite", hex: "#1F232B" },
+          { name: "Lantern", hex: "#F4A261" },
+          { name: "Flame", hex: "#FFF4E6" }
+        ],
+        style: 'lantern'
+      },
+      {
+        id: 2,
+        title: "Sacred Reliquary (Chladni)",
+        number: "EVOLUTION 03 / 03",
+        vibe: "NODAL HARMONICS",
+        accent: "#80ED99",
+        bg: "#070A0D",
+        wall: "#162026",
+        corridor: "#0E151A",
+        player: "#E8F5E9",
+        portal: "#38A3A5",
+        desc: "Esoteric sacred geometry where corridor walls oscillate mathematically with standing Chladni sound waves. Visible corridors reveal sacred geometric seals around chambers.",
+        palette: [
+          { name: "Obsidian", hex: "#070A0D" },
+          { name: "Slate", hex: "#162026" },
+          { name: "Nodal", hex: "#80ED99" },
+          { name: "Sacred", hex: "#38A3A5" }
+        ],
+        style: 'chladni'
+      }
+    ];
+
+    let currentDir = 0;
+
+    // -------------------------------------------------------------------------
+    // MAZE DATA (15x15 Grid with Long Corridors & Chambers)
+    // -------------------------------------------------------------------------
+    const GRID_SIZE = 15;
+    const MAZE_GRID = [
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,1,1,1,1,1,1,1,1,1,0,2,1,1,0], // Long top corridor, Chamber 2 (TicTacToe) at (11,1)
+      [0,1,0,0,0,0,0,0,0,1,0,0,0,1,0],
+      [0,1,0,1,1,1,0,3,0,1,1,1,0,1,0], // Chamber 3 (Snakes) at (7,3)
+      [0,1,0,1,0,1,0,1,0,0,0,1,0,1,0],
+      [0,1,1,1,0,1,1,1,1,1,0,1,0,1,0],
+      [0,0,0,1,0,0,0,0,0,1,0,1,0,1,0], // Long vertical corridor down col 13
+      [0,4,1,1,0,1,1,1,0,1,1,1,1,5,0], // Chamber 4 (Entrapment) at (1,7), Chamber 5 (Ragebait) at (13,7)
+      [0,0,0,1,0,1,0,1,0,0,0,0,0,1,0],
+      [0,1,1,1,0,1,0,1,1,1,1,1,0,1,0],
+      [0,1,0,0,0,1,0,0,0,0,0,1,0,1,0],
+      [0,1,1,1,1,1,1,1,6,0,1,1,0,1,0], // Chamber 6 (MBTI) at (8,11)
+      [0,0,0,1,0,0,0,0,1,0,1,0,0,1,0],
+      [0,7,1,1,1,1,1,1,1,1,1,0,1,8,0], // Long bottom corridor, Chamber 7 (Moral) at (1,13), Exit 8 at (13,13)
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+    ];
+
+    const CHAMBER_NAMES = {
+      2: "Room 01 // Tic-Tac-Toe Arena",
+      3: "Room 02 // Snakes & Ladders Court",
+      4: "Room 03 // The Entrapment Chamber",
+      5: "Room 04 // The Ragebait Crucible",
+      6: "Room 05 // 16Personalities Sanctum",
+      7: "Room 06 // The Moral Tribunal",
+      8: "The Exit Portal // Mind Dossier"
+    };
+
+    let player = { x: 1, y: 1, targetX: 1, targetY: 1 };
+
+    // -------------------------------------------------------------------------
+    // RAYCASTING ENGINE (PHYSICAL LINE OF SIGHT)
+    // -------------------------------------------------------------------------
+    const NUM_RAYS = 320; // High angular resolution
+    const SIGHT_TILES = 5.8; // Maximum human sightline reach
+
+    function getRaycastPolygon(px, py, cellSize) {
+      const maxSightPx = cellSize * SIGHT_TILES;
+      const points = [];
+
+      for (let i = 0; i < NUM_RAYS; i++) {
+        const angle = (i / NUM_RAYS) * Math.PI * 2;
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
+
+        let dist = 0;
+        const step = 3; // Fine precision march
+        let hit = false;
+        let hitX = px;
+        let hitY = py;
+
+        while (dist < maxSightPx) {
+          dist += step;
+          const tx = px + cos * dist;
+          const ty = py + sin * dist;
+
+          const gx = Math.floor(tx / cellSize);
+          const gy = Math.floor(ty / cellSize);
+
+          if (gx < 0 || gx >= GRID_SIZE || gy < 0 || gy >= GRID_SIZE) {
+            hit = true;
+            hitX = tx;
+            hitY = ty;
+            break;
+          }
+
+          if (MAZE_GRID[gy][gx] === 0) {
+            // Hit a wall! Ray stops physically at this boundary
+            hit = true;
+            hitX = tx;
+            hitY = ty;
+            break;
+          }
+        }
+
+        if (!hit) {
+          hitX = px + cos * maxSightPx;
+          hitY = py + sin * maxSightPx;
+        }
+
+        points.push({ x: hitX, y: hitY });
+      }
+
+      return points;
+    }
+
+    // -------------------------------------------------------------------------
+    // RENDER LOOP
+    // -------------------------------------------------------------------------
+    const canvas = document.getElementById('maze-canvas');
+    const ctx = canvas.getContext('2d');
+    let waveTick = 0;
+
+    function resizeCanvas() {
+      const container = document.getElementById('canvas-container');
+      const size = Math.min(container.clientWidth - 40, container.clientHeight - 40, 680);
+      canvas.width = size;
+      canvas.height = size;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function render() {
+      waveTick += 0.05;
+      const d = DIRECTIONS[currentDir];
+      const cellSize = canvas.width / GRID_SIZE;
+
+      // Smooth avatar movement interpolation
+      player.x += (player.targetX - player.x) * 0.28;
+      player.y += (player.targetY - player.y) * 0.28;
+
+      const playerPx = player.x * cellSize + cellSize / 2;
+      const playerPy = player.y * cellSize + cellSize / 2;
+
+      // 1. CLEAR VOID (Absolute blackness)
+      ctx.fillStyle = d.bg;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // 2. COMPUTE PHYSICAL RAYCAST POLYGON
+      const rayPoints = getRaycastPolygon(playerPx, playerPy, cellSize);
+
+      // 3. CLIP TO PHYSICAL LINE OF SIGHT
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(rayPoints[0].x, rayPoints[0].y);
+      for (let i = 1; i < rayPoints.length; i++) {
+        ctx.lineTo(rayPoints[i].x, rayPoints[i].y);
+      }
+      ctx.closePath();
+      ctx.clip(); // Only pixels physically reached by light rays will be rendered!
+
+      // 4. RENDER VISIBLE TILES INSIDE RAYCAST CONE
+      for (let y = 0; y < GRID_SIZE; y++) {
+        for (let x = 0; x < GRID_SIZE; x++) {
+          const type = MAZE_GRID[y][x];
+          const px = x * cellSize;
+          const py = y * cellSize;
+
+          if (d.style === 'blueprint') {
+            // Blueprint Style
+            if (type === 0) {
+              ctx.fillStyle = d.wall;
+              ctx.fillRect(px, py, cellSize, cellSize);
+              ctx.strokeStyle = '#283244';
+              ctx.lineWidth = 1;
+              ctx.strokeRect(px, py, cellSize, cellSize);
+            } else {
+              ctx.fillStyle = d.corridor;
+              ctx.fillRect(px, py, cellSize, cellSize);
+
+              // Grid chalk lines
+              ctx.strokeStyle = 'rgba(112, 193, 179, 0.15)';
+              ctx.lineWidth = 0.5;
+              ctx.strokeRect(px + 0.5, py + 0.5, cellSize - 1, cellSize - 1);
+
+              if (type >= 2 && type <= 8) {
+                // Chamber Portal Seal
+                ctx.strokeStyle = d.accent;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(px + cellSize/2, py + cellSize/2, cellSize * 0.35, 0, Math.PI * 2);
+                ctx.stroke();
+
+                ctx.fillStyle = d.portal;
+                ctx.beginPath();
+                ctx.arc(px + cellSize/2, py + cellSize/2, cellSize * 0.18, 0, Math.PI * 2);
+                ctx.fill();
+              }
+            }
+          } else if (d.style === 'lantern') {
+            // Volumetric Amber Lantern
+            if (type === 0) {
+              ctx.fillStyle = d.wall;
+              ctx.fillRect(px, py, cellSize, cellSize);
+              ctx.strokeStyle = '#2D3442';
+              ctx.lineWidth = 1.5;
+              ctx.strokeRect(px, py, cellSize, cellSize);
+            } else {
+              ctx.fillStyle = d.corridor;
+              ctx.fillRect(px, py, cellSize, cellSize);
+
+              if (type >= 2 && type <= 8) {
+                ctx.fillStyle = d.portal;
+                ctx.beginPath();
+                ctx.arc(px + cellSize/2, py + cellSize/2, cellSize * 0.3, 0, Math.PI * 2);
+                ctx.fill();
+              }
+            }
+          } else {
+            // Chladni Standing Wave
+            const wave = Math.sin(waveTick * 2 + x * 0.6 + y * 0.6) * 1.5;
+            if (type === 0) {
+              ctx.fillStyle = d.wall;
+              ctx.fillRect(px + 1, py + 1, cellSize - 2, cellSize - 2);
+              ctx.strokeStyle = d.accent;
+              ctx.lineWidth = 0.8;
+              ctx.strokeRect(px + 1 + wave, py + 1, cellSize - 2, cellSize - 2);
+            } else {
+              ctx.fillStyle = d.corridor;
+              ctx.fillRect(px, py, cellSize, cellSize);
+              if (type >= 2 && type <= 8) {
+                ctx.strokeStyle = d.accent;
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(px + cellSize/2, py + 3);
+                ctx.lineTo(px + cellSize - 3, py + cellSize/2);
+                ctx.lineTo(px + cellSize/2, py + cellSize - 3);
+                ctx.lineTo(px + 3, py + cellSize/2);
+                ctx.closePath();
+                ctx.stroke();
+              }
+            }
+          }
+        }
+      }
+
+      // 5. VOLUMETRIC ATTENUATION FALLOFF (Light fades down long corridors)
+      const grad = ctx.createRadialGradient(
+        playerPx, playerPy, cellSize * 0.4,
+        playerPx, playerPy, cellSize * SIGHT_TILES
+      );
+      grad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+      grad.addColorStop(0.55, 'rgba(0, 0, 0, 0.15)');
+      grad.addColorStop(1, 'rgba(9, 11, 14, 0.96)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.restore(); // END CLIP
+
+      // 6. DRAW WALL CONTOUR EDGES (Subtle outline of walls bordering darkness)
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(rayPoints[0].x, rayPoints[0].y);
+      for (let i = 1; i < rayPoints.length; i++) {
+        ctx.lineTo(rayPoints[i].x, rayPoints[i].y);
+      }
+      ctx.closePath();
+      ctx.stroke();
+
+      // 7. DRAW AVATAR & SIGHT RETICLE
+      if (d.style === 'blueprint') {
+        // Architectural compass reticle
+        ctx.strokeStyle = d.player;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(playerPx, playerPy, cellSize * 0.25, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = d.accent;
+        ctx.beginPath();
+        ctx.arc(playerPx, playerPy, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Crosshairs
+        ctx.strokeStyle = d.accent;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(playerPx - 10, playerPy);
+        ctx.lineTo(playerPx + 10, playerPy);
+        ctx.moveTo(playerPx, playerPy - 10);
+        ctx.lineTo(playerPx, playerPy + 10);
+        ctx.stroke();
+      } else if (d.style === 'lantern') {
+        // Amber flame glyph
+        ctx.fillStyle = d.player;
+        ctx.beginPath();
+        ctx.arc(playerPx, playerPy, cellSize * 0.28, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = d.accent;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      } else {
+        // Resonant nodal circle
+        ctx.strokeStyle = d.player;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(playerPx, playerPy, cellSize * 0.26, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = d.accent;
+        ctx.beginPath();
+        ctx.arc(playerPx, playerPy, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        const pulse = 8 + (Math.sin(waveTick * 3) + 1) * 5;
+        ctx.strokeStyle = 'rgba(128, 237, 153, 0.4)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(playerPx, playerPy, pulse, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      requestAnimationFrame(render);
+    }
+    render();
+
+    // -------------------------------------------------------------------------
+    // KEYBOARD NAVIGATION (WASD / ARROWS)
+    // -------------------------------------------------------------------------
+    window.addEventListener('keydown', (e) => {
+      if (!document.getElementById('chamber-modal').classList.contains('hidden')) {
+        if (e.key === 'Escape') closeChamberModal();
+        return;
+      }
+
+      let dx = 0;
+      let dy = 0;
+
+      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') dy = -1;
+      else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') dy = 1;
+      else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') dx = -1;
+      else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') dx = 1;
+      else if (e.key === ' ' || e.key === 'Enter') {
+        const cell = MAZE_GRID[player.targetY][player.targetX];
+        if (cell >= 2 && cell <= 8) openChamberModal(cell);
+        return;
+      } else return;
+
+      const newX = player.targetX + dx;
+      const newY = player.targetY + dy;
+
+      if (newX >= 0 && newX < GRID_SIZE && newY >= 0 && newY < GRID_SIZE) {
+        if (MAZE_GRID[newY][newX] !== 0) {
+          player.targetX = newX;
+          player.targetY = newY;
+          playFootstep();
+          updateTelemetry(newX, newY);
+        }
+      }
+    });
+
+    function updateTelemetry(x, y) {
+      const type = MAZE_GRID[y][x];
+      const posDisplay = document.getElementById('pos-display');
+      const hint = document.getElementById('chamber-hint');
+      const hintText = document.getElementById('chamber-hint-text');
+
+      if (type >= 2 && type <= 8) {
+        posDisplay.innerText = `LOC: [X: ${x.toString().padStart(2, '0')}, Y: ${y.toString().padStart(2, '0')}] // ${CHAMBER_NAMES[type]}`;
+        hint.classList.remove('hidden');
+        hintText.innerText = `${CHAMBER_NAMES[type]}: PRESS [SPACE] OR ENTER TO ENGAGE`;
+      } else {
+        posDisplay.innerText = `LOC: [X: ${x.toString().padStart(2, '0')}, Y: ${y.toString().padStart(2, '0')}] // SECTOR: CORRIDOR_VOID`;
+        hint.classList.add('hidden');
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // DIRECTION SWITCHING
+    // -------------------------------------------------------------------------
+    function setDirection(index) {
+      currentDir = index;
+      const d = DIRECTIONS[index];
+
+      for (let i = 0; i < 3; i++) {
+        const tab = document.getElementById(`tab-${i}`);
+        if (i === index) {
+          tab.className = "px-3 py-1.5 rounded text-xs font-mono font-medium transition-all text-[#F0F4F8] bg-[#1E2532] shadow-sm";
+        } else {
+          tab.className = "px-3 py-1.5 rounded text-xs font-mono font-medium transition-all text-[#8E98A5] hover:text-[#F0F4F8]";
+        }
+      }
+
+      document.getElementById('arch-number').innerText = d.number;
+      document.getElementById('arch-vibe').innerText = d.vibe;
+      document.getElementById('arch-vibe').style.color = d.accent;
+      document.getElementById('arch-title').innerText = d.title;
+      document.getElementById('arch-desc').innerText = d.desc;
+      document.getElementById('live-indicator').style.backgroundColor = d.accent;
+      document.getElementById('live-indicator').style.boxShadow = `0 0 12px ${d.accent}99`;
+      document.getElementById('mode-meta').innerText = `${d.number} • ${d.vibe}`;
+
+      const chipsContainer = document.getElementById('palette-chips');
+      chipsContainer.innerHTML = '';
+      d.palette.forEach(p => {
+        const div = document.createElement('div');
+        div.className = "flex flex-col items-center p-2 rounded bg-[#090B0E] border border-[#1E242E]";
+        div.innerHTML = `
+          <div class="w-full h-7 rounded mb-1.5 border border-[#1E242E]" style="background-color: ${p.hex}"></div>
+          <span class="font-mono text-[9px] text-[#F0F4F8] block truncate w-full text-center">${p.name}</span>
+          <span class="font-mono text-[8px] text-[#8E98A5]">${p.hex}</span>
+        `;
+        chipsContainer.appendChild(div);
+      });
+
+      document.getElementById('modal-accent-dot').style.backgroundColor = d.accent;
+      playChime();
+    }
+    setDirection(0);
+
+    // -------------------------------------------------------------------------
+    // CHAMBER MODAL LOGIC
+    // -------------------------------------------------------------------------
+    function triggerChamberTest() {
+      openChamberModal(4);
+    }
+
+    function openChamberModal(cellType) {
+      const modal = document.getElementById('chamber-modal');
+      const title = document.getElementById('modal-title');
+      const sub = document.getElementById('modal-sub');
+      const chat = document.getElementById('modal-chat-bubble');
+
+      sub.innerText = CHAMBER_NAMES[cellType] || "CHAMBER ENCOUNTER";
+      if (cellType === 2) {
+        title.innerText = "Tic-Tac-Toe Arena";
+        chat.innerHTML = `<span style="color:${DIRECTIONS[currentDir].accent}" class="block mb-1">// WARDEN:</span> "Place your mark upon the 3x3 stone tablet. Let us measure your spatial opportunism."`;
+      } else if (cellType === 3) {
+        title.innerText = "Snakes & Ladders Court";
+        chat.innerHTML = `<span style="color:${DIRECTIONS[currentDir].accent}" class="block mb-1">// WARDEN:</span> "The dice fall without remorse. Will you blame fortune, or observe your own frustration?"`;
+      } else if (cellType === 5) {
+        title.innerText = "The Ragebait Crucible";
+        chat.innerHTML = `<span style="color:${DIRECTIONS[currentDir].accent}" class="block mb-1">// WARDEN:</span> "Frankly, your navigation is painfully predictable. Even a blind rodent finds cheese faster. Do you always deliberate this long?"`;
+      } else if (cellType === 6) {
+        title.innerText = "16Personalities Sanctum";
+        chat.innerHTML = `<span style="color:${DIRECTIONS[currentDir].accent}" class="block mb-1">// WARDEN:</span> "When walking into a crowded assembly, do you instinctively seek the perimeter wall or the central debate?"`;
+      } else if (cellType === 7) {
+        title.innerText = "The Moral Tribunal";
+        chat.innerHTML = `<span style="color:${DIRECTIONS[currentDir].accent}" class="block mb-1">// WARDEN:</span> "Five souls are bound to the eastern track; one innocent child stands upon the western switch. What is your imperative?"`;
+      } else {
+        title.innerText = "The Warden's Paradox";
+        chat.innerHTML = `<span style="color:${DIRECTIONS[currentDir].accent}" class="block mb-1">// WARDEN:</span> "You stand in the Entrapment Chamber. The gates behind you have locked. Why should I allow your mind to proceed?"`;
+      }
+
+      modal.classList.remove('hidden');
+      document.getElementById('modal-input').focus();
+      playChime();
+    }
+
+    function closeChamberModal() {
+      document.getElementById('chamber-modal').classList.add('hidden');
+    }
+
+    function submitTestDialogue() {
+      const input = document.getElementById('modal-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const chat = document.getElementById('modal-chat-bubble');
+      chat.innerHTML += `<div class="mt-2 pt-2 border-t border-[#1E242E]"><span class="text-[#8E98A5] block">// YOU:</span> "${text}"</div>`;
+      input.value = '';
+      chat.scrollTop = chat.scrollHeight;
+
+      setTimeout(() => {
+        const d = DIRECTIONS[currentDir];
+        chat.innerHTML += `<div class="mt-2 pt-2 border-t border-[#1E242E]"><span style="color:${d.accent}" class="block">// WARDEN:</span> "An intriguing defense. Your argument registers high analytical discipline. The seal wavers..."</div>`;
+        chat.scrollTop = chat.scrollHeight;
+        playFootstep();
+      }, 400);
+    }
+  </script>
+</body>
+</html>
